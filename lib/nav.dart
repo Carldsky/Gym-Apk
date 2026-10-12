@@ -12,12 +12,19 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  final PageController _pageController = PageController();
 
   final List<Widget> _pages = const [
     BerandaPage(),
     ProgressPage(),
     ProfilePage(),
   ];
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   static const Color _background = Color(0xFF0B0F12);
   static const Color _navBackground = Color(0xFF151B20);
@@ -37,7 +44,15 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _background,
-      body: _pages[_selectedIndex],
+      body: PageView(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        children: _pages,
+      ),
       bottomNavigationBar: NavigationBarTheme(
         data: NavigationBarThemeData(
           backgroundColor: _navBackground,
@@ -70,6 +85,11 @@ class _HomePageState extends State<HomePage> {
             setState(() {
               _selectedIndex = index;
             });
+            _pageController.animateToPage(
+              index,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+            );
           },
           destinations: [
             for (final item in _navigationItems)

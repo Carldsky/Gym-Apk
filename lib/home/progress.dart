@@ -382,23 +382,36 @@ class _ProgressPageState extends State<ProgressPage> {
                       style: const TextStyle(color: _muted, fontSize: 12),
                     ),
                     children: [
-                      ...session.exercises.map(
-                        (exercise) => ListTile(
-                          dense: true,
-                          title: Text(
-                            exercise.name,
-                            style: const TextStyle(color: Colors.white),
+                      ...session.exercises
+                          .where((exercise) => exercise.done)
+                          .map(
+                            (exercise) => ListTile(
+                              dense: true,
+                              title: Text(
+                                exercise.name,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              subtitle: Text(
+                                '${exercise.sets} set × ${exercise.reps} reps',
+                                style: const TextStyle(color: _muted),
+                              ),
+                              trailing: Text(
+                                '${_formatWeight(exercise.weight)} kg',
+                                style: const TextStyle(color: _green),
+                              ),
+                            ),
                           ),
-                          subtitle: Text(
-                            '${exercise.sets} set × ${exercise.reps} reps',
-                            style: const TextStyle(color: _muted),
-                          ),
-                          trailing: Text(
-                            '${_formatWeight(exercise.weight)} kg',
-                            style: const TextStyle(color: _green),
+                      if (session.exercises.where((e) => e.done).isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.fromLTRB(16, 4, 16, 8),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              'Tidak ada latihan yang selesai',
+                              style: TextStyle(color: _muted, fontSize: 12),
+                            ),
                           ),
                         ),
-                      ),
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton.icon(
