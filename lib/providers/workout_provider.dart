@@ -184,7 +184,7 @@ class WorkoutProvider extends ChangeNotifier {
     loadData();
   }
 
-  List<Exercise> get exercises => workouts[selectedSplit]!;
+  List<Exercise> get exercises => workouts[selectedSplit] ?? [];
 
   int get completedExercises =>
       exercises.where((exercise) => exercise.done).length;
@@ -234,39 +234,33 @@ class WorkoutProvider extends ChangeNotifier {
       if (savedData != null) {
         final data = jsonDecode(savedData) as Map<String, dynamic>;
 
-        final savedSplit = data['selectedSplit'] as String?;
-
-        if (savedSplit != null && workouts.containsKey(savedSplit)) {
-          selectedSplit = savedSplit;
-        }
-
         final savedWorkouts = data['workouts'];
 
         if (savedWorkouts is Map<String, dynamic>) {
+          workouts.clear();
           for (final splitEntry in savedWorkouts.entries) {
             final split = splitEntry.key;
             final savedExercises = splitEntry.value;
 
-            if (!workouts.containsKey(split) || savedExercises is! List) {
+            if (savedExercises is! List) {
               continue;
             }
 
-            final currentExercises = workouts[split]!;
-
-            for (final savedExercise in savedExercises) {
-              if (savedExercise is! Map<String, dynamic>) continue;
-
-              final name = savedExercise['name'];
-
-              final index = currentExercises.indexWhere(
-                (exercise) => exercise.name == name,
-              );
-
-              if (index != -1) {
-                currentExercises[index] = Exercise.fromJson(savedExercise);
-              }
-            }
+            workouts[split] = savedExercises
+                .whereType<Map<String, dynamic>>()
+                .map((item) => Exercise.fromJson(item))
+                .toList();
           }
+        }
+
+        final savedSplit = data['selectedSplit'] as String?;
+
+        if (savedSplit != null && workouts.containsKey(savedSplit)) {
+          selectedSplit = savedSplit;
+        } else if (workouts.isNotEmpty) {
+          selectedSplit = workouts.keys.first;
+        } else {
+          selectedSplit = '';
         }
       }
 
@@ -334,5 +328,85 @@ class WorkoutProvider extends ChangeNotifier {
 
     notifyListeners();
     saveData();
+  }
+
+  void addExercise(
+    Exercise exercise, {
+    String? split,
+  }) {
+    final targetSplit = split ?? selectedSplit;
+    if (!workouts.containsKey(targetSplit)) {
+      workouts[targetSplit] = [];
+    }
+    workouts[targetSplit]!.add(exercise);
+    notifyListeners();
+    saveData();
+  }
+
+  void removeExercise(
+    Exercise exercise, {
+    String? split,
+  }) {
+    final targetSplit = split ?? selectedSplit;
+    if (workouts.containsKey(targetSplit)) {
+      workouts[targetSplit]!.remove(exercise);
+      notifyListeners();
+      saveData();
+    }
+  }
+
+  void removeExerciseAt(
+    int index, {
+    String? split,
+  }) {
+    final targetSplit = split ?? selectedSplit;
+    if (workouts.containsKey(targetSplit)) {
+      final list = workouts[targetSplit]!;
+      if (index >= 0 && index < list.length) {
+        list.removeAt(index);
+        notifyListeners();
+        saveData();
+      }
+    }
+  }
+
+  bool addSplit(String splitName) {
+    final name = splitName.trim();
+    if (name.isEmpty || workouts.containsKey(name)) return false;
+
+    workouts[name] = [];
+    selectedSplit = name;
+    notifyListeners();
+    saveData();
+    return true;
+  }
+
+  bool deleteSplit(String splitName) {
+    if (!workouts.containsKey(splitName)) return false;
+
+    workouts.remove(splitName);
+    if (selectedSplit == splitName) {
+      selectedSplit = workouts.keys.isNotEmpty ? workouts.keys.first : '';
+    }
+    notifyListeners();
+    saveData();
+    return true;
+  }
+
+  bool renameSplit(String oldName, String newName) {
+    final target = newName.trim();
+    if (target.isEmpty ||
+        !workouts.containsKey(oldName) ||
+        workouts.containsKey(target)) {
+      return false;
+    }
+    final currentExercises = workouts.remove(oldName) ?? [];
+    workouts[target] = currentExercises;
+    if (selectedSplit == oldName) {
+      selectedSplit = target;
+    }
+    notifyListeners();
+    saveData();
+    return true;
   }
 }
