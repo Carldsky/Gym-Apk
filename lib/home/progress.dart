@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/workout_session.dart';
 import '../providers/progress_history_provider.dart';
 import '../providers/workout_provider.dart';
+import 'workout_history_view.dart';
 
 const Color _bg = Color(0xFF0B0F12);
 const Color _card = Color(0xFF151B20);
@@ -349,88 +350,7 @@ class _ProgressPageState extends State<ProgressPage> {
             const SizedBox(height: 26),
 
             // RIWAYAT
-            _sectionTitle('Riwayat Latihan'),
-            const SizedBox(height: 12),
-            if (latest.isEmpty)
-              _panel(
-                child: const Text(
-                  'Belum ada riwayat. Tekan Simpan Sesi setelah latihan.',
-                  style: TextStyle(color: _muted),
-                ),
-              )
-            else
-              ...latest.map(
-                (session) => Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  decoration: BoxDecoration(
-                    color: _card,
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: ExpansionTile(
-                    iconColor: _green,
-                    collapsedIconColor: _muted,
-                    title: Text(
-                      session.split,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    subtitle: Text(
-                      '${_formatDate(session.date)} • '
-                      '${session.completedExercises}/${session.totalExercises} latihan selesai',
-                      style: const TextStyle(color: _muted, fontSize: 12),
-                    ),
-                    children: [
-                      ...session.exercises
-                          .where((exercise) => exercise.done)
-                          .map(
-                            (exercise) => ListTile(
-                              dense: true,
-                              title: Text(
-                                exercise.name,
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                              subtitle: Text(
-                                '${exercise.sets} set × ${exercise.reps} reps',
-                                style: const TextStyle(color: _muted),
-                              ),
-                              trailing: Text(
-                                '${_formatWeight(exercise.weight)} kg',
-                                style: const TextStyle(color: _green),
-                              ),
-                            ),
-                          ),
-                      if (session.exercises.where((e) => e.done).isEmpty)
-                        const Padding(
-                          padding: EdgeInsets.fromLTRB(16, 4, 16, 8),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              'Tidak ada latihan yang selesai',
-                              style: TextStyle(color: _muted, fontSize: 12),
-                            ),
-                          ),
-                        ),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton.icon(
-                          onPressed: () async {
-                            await context
-                                .read<ProgressHistoryProvider>()
-                                .deleteSession(session.id);
-                          },
-                          icon: const Icon(Icons.delete_outline),
-                          label: const Text('Hapus riwayat'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.redAccent,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            const WorkoutHistoryView(),
           ],
         ),
       ),

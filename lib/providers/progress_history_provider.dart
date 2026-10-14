@@ -68,6 +68,7 @@ class ProgressHistoryProvider extends ChangeNotifier {
         workout.exercises.map((exercise) {
           return WorkoutExerciseRecord(
             name: exercise.name,
+            target: exercise.target,
             weight: exercise.weight,
             sets: exercise.sets,
             reps: exercise.reps,
